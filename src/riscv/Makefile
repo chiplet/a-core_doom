@@ -1,11 +1,23 @@
-CROSS ?= riscv-none-embed-
+CROSS ?= riscv64-unknown-elf-
 
 CC = $(CROSS)gcc
 OBJCOPY = $(CROSS)objcopy
 SIZE = $(CROSS)size
 ICEPROG = iceprog
 
-CFLAGS=-Wall -O2 -march=rv32im -mabi=ilp32 -ffreestanding -flto -nostartfiles -fomit-frame-pointer -Wl,--gc-section --specs=nano.specs -I..
+# CFLAGS=-Wall -O2 -march=rv32im -mabi=ilp32 -ffreestanding -flto -nostartfiles -fomit-frame-pointer -Wl,--gc-section --specs=nano.specs -I..
+
+# Program and data memory specifications
+PROGMEM_START ?= 0x00001000
+PROGMEM_LENGTH ?= 512K
+DATAMEM_START ?= 0x20000000
+DATAMEM_LENGTH ?= 512K
+CFLAGS ?= -march=rv32im_zicsr -mabi=ilp32 -ffreestanding -nostartfiles -Os -fdata-sections -ffunction-sections --specs=nano.specs -I..
+# LDOPTS ?= -T a-core.ld -lc_nano -lgcc -Wl,--gc-sections \
+# 	-Wl,--defsym=PROGMEM_START=$(PROGMEM_START),--defsym=PROGMEM_LENGTH=$(PROGMEM_LENGTH),--defsym=DATAMEM_START=$(DATAMEM_START),--defsym=DATAMEM_LENGTH=$(DATAMEM_LENGTH)
+LDOPTS ?= -T a-core.ld -lc_nano -lgcc -Wl,--gc-sections \
+	-Wl,--defsym=PROGMEM_START=$(PROGMEM_START),--defsym=PROGMEM_LENGTH=$(PROGMEM_LENGTH),--defsym=DATAMEM_START=$(DATAMEM_START),--defsym=DATAMEM_LENGTH=$(DATAMEM_LENGTH)
+
 
 CFLAGS += \
 	-DNORMALUNIX \
@@ -29,17 +41,21 @@ SOURCES_doom_arch := \
 	i_system.c \
 	i_video.c \
 	s_sound.c \
-	start.S \
 	console.c  \
 	libc_backend.c  \
 	mini-printf.c \
 	$(NULL)
 
+SOURCES := $(addprefix ../,$(SOURCES_doom)) $(SOURCES_doom_arch)
+
 
 all: doom-riscv.bin
 
-doom-riscv.elf: riscv.lds $(addprefix ../,$(SOURCES_doom)) $(SOURCES_doom_arch)
-	$(CC) $(CFLAGS) -Wl,-Bstatic,-T,riscv.lds,--strip-debug -o $@ $(addprefix ../,$(SOURCES_doom)) $(SOURCES_doom_arch)
+# doom-riscv.elf: riscv.lds $(addprefix ../,$(SOURCES_doom)) $(SOURCES_doom_arch)
+# 	$(CC) $(CFLAGS) -Wl,-Bstatic,-T,riscv.lds,--strip-debug -o $@ $(addprefix ../,$(SOURCES_doom)) $(SOURCES_doom_arch)
+# 	$(SIZE) $@
+doom-riscv.elf: $(SOURCES)
+	$(CC) $(SOURCES) $(CFLAGS) acore_start.s -o $@ $(LDOPTS)
 	$(SIZE) $@
 
 clean:
