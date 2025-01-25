@@ -48,6 +48,9 @@ SECTIONS
   /* rodata can live at ROM */
   .rodata : {
       *(.rodata .rodata.* .gnu.linkonce.r.*)
+      miniwad_start = .;     /* Mark the start of the data */
+      KEEP(*(.miniwad_rodata)); /* Placeholder for binary data */
+      miniwad_end = .;       /* Mark the end of the data */
   } > ROM
 
   /* .bss and .sbss are initialized to zero */

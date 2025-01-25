@@ -544,7 +544,7 @@ void IdentifyVersion (void)
     D_AddFile ("tnt.wad");
 #elif 1
     gamemode = retail;
-    D_AddFile ("doomu.wad");
+    D_AddFile ("miniwad.wad");
 #elif 0
     gamemode = registered;
     D_AddFile ("doom.wad");
