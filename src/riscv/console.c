@@ -19,52 +19,63 @@
 
 #include "config.h"
 #include "mini-printf.h"
+#include "a-core.h"
+#include "acore-uart.h"
+#include "a-core-utils.h"
 
 
-struct wb_uart {
-	uint32_t data;
+struct acore_uart {
+	uint32_t clk_thresh;
+	uint32_t tx_byte;
 	uint32_t clkdiv;
 } __attribute__((packed,aligned(4)));
 
-static volatile struct wb_uart * const uart_regs = (void*)(UART_BASE);
+static volatile struct acore_uart * const uart_regs = (void*)(A_CORE_AXI4LUART);
 
 
 void
 console_init(void)
 {
-	uart_regs->clkdiv = 23;	/* 1 Mbaud with clk=25MHz */
+	init_uart((uint32_t*)A_CORE_AXI4LUART, 1);
+	// uart_regs->clk_thresh = 1; // fast output for simulation
 }
 
 void
 console_putchar(char c)
 {
-	uart_regs->data = c;
+	transmit_byte((uint8_t*)A_CORE_AXI4LUART, (uint8_t)c);
 }
 
 char
 console_getchar(void)
 {
-	int32_t c;
-	do {
-		c = uart_regs->data;
-	} while (c & 0x80000000);
-	return c;
+	// int32_t c;
+	// do {
+	// 	c = uart_regs->data;
+	// } while (c & 0x80000000);
+	// return c;
+	// TODO: implement!
+	for(;;);
 }
 
 int
 console_getchar_nowait(void)
 {
-	int32_t c;
-	c = uart_regs->data;
-	return c & 0x80000000 ? -1 : (c & 0xff);
+	// int32_t c;
+	// c = uart_regs->data;
+	// return c & 0x80000000 ? -1 : (c & 0xff);
+	// TODO: implement!
+	for(;;);
 }
 
 void
 console_puts(const char *p)
 {
 	char c;
-	while ((c = *(p++)) != 0x00)
-		uart_regs->data = c;
+	while ((c = *(p++)) != 0x00) {
+		console_putchar(c);
+		wait_for_uart_ready((uint8_t*)A_CORE_AXI4LUART);
+	}
 }
 
 int

@@ -138,14 +138,15 @@ _read(int fd, void *buf, size_t nbyte)
 	return nbyte;
 }
 
-ssize_t
-_write(int fd, const void *buf, size_t nbyte)
-{
-	const unsigned char *c = buf;
-	for (int i=0; i<nbyte; i++)
-		console_putchar(*c++);
-	return nbyte;
-}
+// this is already defined in a-core-lib
+// ssize_t
+// _write(int fd, const void *buf, size_t nbyte)
+// {
+// 	const unsigned char *c = buf;
+// 	for (int i=0; i<nbyte; i++)
+// 		console_putchar(*c++);
+// 	return nbyte;
+// }
 
 int
 _close(int fd)

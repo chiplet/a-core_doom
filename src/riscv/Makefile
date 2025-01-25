@@ -7,12 +7,17 @@ ICEPROG = iceprog
 
 # CFLAGS=-Wall -O2 -march=rv32im -mabi=ilp32 -ffreestanding -flto -nostartfiles -fomit-frame-pointer -Wl,--gc-section --specs=nano.specs -I..
 
+INCLUDES =
+INCLUDES += -I ..
+INCLUDES += -I a-core-library/a-core-utils/include
+INCLUDES += -I ../../../../ACoreChip/verilog/include
+
 # Program and data memory specifications
 PROGMEM_START ?= 0x00001000
 PROGMEM_LENGTH ?= 512K
 DATAMEM_START ?= 0x20000000
 DATAMEM_LENGTH ?= 512K
-CFLAGS ?= -march=rv32im_zicsr -mabi=ilp32 -ffreestanding -nostartfiles -Os -fdata-sections -ffunction-sections --specs=nano.specs -I..
+CFLAGS ?= -march=rv32im_zicsr -mabi=ilp32 -ffreestanding -nostartfiles -Os -fdata-sections -ffunction-sections --specs=nosys.specs $(INCLUDES)
 # LDOPTS ?= -T a-core.ld -lc_nano -lgcc -Wl,--gc-sections \
 # 	-Wl,--defsym=PROGMEM_START=$(PROGMEM_START),--defsym=PROGMEM_LENGTH=$(PROGMEM_LENGTH),--defsym=DATAMEM_START=$(DATAMEM_START),--defsym=DATAMEM_LENGTH=$(DATAMEM_LENGTH)
 LDOPTS ?= -T a-core.ld -lc_nano -lgcc -Wl,--gc-sections \
@@ -44,6 +49,7 @@ SOURCES_doom_arch := \
 	console.c  \
 	libc_backend.c  \
 	mini-printf.c \
+	a-core-library/a-core-utils/src/a-core-utils.c \
 	$(NULL)
 
 SOURCES := $(addprefix ../,$(SOURCES_doom)) $(SOURCES_doom_arch)
