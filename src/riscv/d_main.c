@@ -79,6 +79,8 @@ rcsid[] = "$Id: d_main.c,v 1.8 1997/02/03 22:45:09 b1 Exp $";
 
 #include "d_main.h"
 
+#include "console.h"
+
 //
 // D-DoomLoop()
 // Not a globally visible function,
@@ -101,7 +103,7 @@ boolean         fastparm;       // checkparm of -fast
 
 boolean         drone;
 
-boolean         singletics = false; // debug flag to cancel adaptiveness
+boolean         singletics = true; // debug flag to cancel adaptiveness
 
 
 
@@ -351,27 +353,36 @@ void D_DoomLoop (void)
     while (1)
     {
         // frame syncronous IO operations
+        console_puts("I_StartFrame\n");
         I_StartFrame ();
 
         // process one or more tics
         if (singletics)
         {
+            console_puts("I_StartTic\n");
             I_StartTic ();
+            console_puts("D_ProcessEvents\n");
             D_ProcessEvents ();
+            console_puts("G_BuildTiccmd\n");
             G_BuildTiccmd (&netcmds[consoleplayer][maketic%BACKUPTICS]);
             if (advancedemo)
+                console_puts("D_DoAdvanceDemo\n");
                 D_DoAdvanceDemo ();
+            console_puts("M_Ticker\n");
             M_Ticker ();
+            console_puts("G_Ticker\n");
             G_Ticker ();
             gametic++;
             maketic++;
         }
         else
         {
+            console_puts("TryRunTics\n");
             TryRunTics (); // will run at least one tic
         }
 
         // Update display, next frame, with current state.
+        console_puts("D_Display\n");
         D_Display ();
     }
 }

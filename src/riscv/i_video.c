@@ -48,6 +48,7 @@ I_ShutdownGraphics(void)
 void
 I_SetPalette(byte* palette)
 {
+	printf("byte* palette = 0x%08x\n", palette);
 	static volatile uint32_t * const video_pal = (void*)(VID_PAL_BASE);
 	byte r, g, b;
 
@@ -55,8 +56,10 @@ I_SetPalette(byte* palette)
 		r = gammatable[usegamma][*palette++];
 		g = gammatable[usegamma][*palette++];
 		b = gammatable[usegamma][*palette++];
+		printf("0x%08x\n0x%08x\n0x%08x\n",r,g,b);
 		video_pal[i] = ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
 	}
+	for(;;);
 }
 
 
@@ -70,7 +73,7 @@ I_FinishUpdate (void)
 {
 	/* Copy from RAM buffer to frame buffer */
 	memcpy(
-		(void*)VID_FB_BASE,
+		(void*)VID_BASE,
 		screens[0],
 		SCREENHEIGHT * SCREENWIDTH
 	);

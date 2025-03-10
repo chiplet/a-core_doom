@@ -14,7 +14,7 @@ INCLUDES += -I ../../../../ACoreChip/verilog/include
 
 # Program and data memory specifications
 PROGMEM_START ?= 0x00001000
-PROGMEM_LENGTH ?= 1M
+PROGMEM_LENGTH ?= 16M
 DATAMEM_START ?= 0x20000000
 # DATAMEM_LENGTH ?= 1024K
 DATAMEM_LENGTH ?= 16M
@@ -22,7 +22,8 @@ CFLAGS ?= -march=rv32im_zicsr -mabi=ilp32 -ffreestanding -nostartfiles -Os -fdat
 # LDOPTS ?= -T a-core.ld -lc_nano -lgcc -Wl,--gc-sections \
 # 	-Wl,--defsym=PROGMEM_START=$(PROGMEM_START),--defsym=PROGMEM_LENGTH=$(PROGMEM_LENGTH),--defsym=DATAMEM_START=$(DATAMEM_START),--defsym=DATAMEM_LENGTH=$(DATAMEM_LENGTH)
 LDOPTS ?= -T a-core.ld -lc_nano -lgcc -Wl,--gc-sections \
-	-Wl,--defsym=PROGMEM_START=$(PROGMEM_START),--defsym=PROGMEM_LENGTH=$(PROGMEM_LENGTH),--defsym=DATAMEM_START=$(DATAMEM_START),--defsym=DATAMEM_LENGTH=$(DATAMEM_LENGTH)
+	-Wl,--defsym=PROGMEM_START=$(PROGMEM_START),--defsym=PROGMEM_LENGTH=$(PROGMEM_LENGTH),--defsym=DATAMEM_START=$(DATAMEM_START),--defsym=DATAMEM_LENGTH=$(DATAMEM_LENGTH) \
+	-Wl,-Map=mapfile.map
 
 
 CFLAGS += \
@@ -51,6 +52,7 @@ SOURCES_doom_arch := \
 	libc_backend.c  \
 	mini-printf.c \
 	a-core-library/a-core-utils/src/a-core-utils.c \
+	newlib_mods.c \
 	miniwad.o \
 	$(NULL)
 

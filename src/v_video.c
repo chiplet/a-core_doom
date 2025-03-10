@@ -43,6 +43,12 @@ rcsid[] = "$Id: v_video.c,v 1.5 1997/02/03 22:45:13 b1 Exp $";
 // Each screen is [SCREENWIDTH*SCREENHEIGHT];
 byte*                           screens[5];
 
+// statically allocate screen buffers
+byte screen0[SCREENWIDTH*SCREENHEIGHT];
+byte screen1[SCREENWIDTH*SCREENHEIGHT];
+byte screen2[SCREENWIDTH*SCREENHEIGHT];
+byte screen3[SCREENWIDTH*SCREENHEIGHT];
+
 int                             dirtybox[4];
 
 
@@ -481,13 +487,15 @@ V_GetBlock
 //
 void V_Init (void)
 {
-    int         i;
-    byte*       base;
-
+    // int         i;
+    // byte*       base;
     // stick these in low dos memory on PCs
-
-    base = I_AllocLow (SCREENWIDTH*SCREENHEIGHT*4);
-
-    for (i=0 ; i<4 ; i++)
-        screens[i] = base + i*SCREENWIDTH*SCREENHEIGHT;
+    // base = I_AllocLow (SCREENWIDTH*SCREENHEIGHT*4);
+    // for (i=0 ; i<4 ; i++)
+    //     screens[i] = base + i*SCREENWIDTH*SCREENHEIGHT;
+    screens[0] = &screen0[0];
+    screens[1] = &screen1[0];
+    screens[2] = &screen2[0];
+    screens[3] = &screen3[0];
+    screens[4] = NULL;
 }

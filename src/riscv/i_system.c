@@ -39,6 +39,7 @@
 #include "console.h"
 #include "config.h"
 
+#include "a-core-csr.h"
 
 /* Video controller, used as a time base */
 	/* Normally running at 70 Hz, although in 640x480 compat
@@ -53,7 +54,9 @@ static uint32_t vt_base = 0;
 void
 I_Init(void)
 {
-	vt_last = video_state[0] & 0xffff;
+	// vt_last = video_state[0] & 0xffff;
+	// FIXME: Initialize video controller
+	vt_last = 0;
 }
 
 
@@ -69,7 +72,18 @@ I_ZoneBase(int *size)
 int
 I_GetTime(void)
 {
-	uint16_t vt_now = video_state[0] & 0xffff;
+	// uint16_t vt_now = video_state[0] & 0xffff;
+
+	// read time from cycles csr
+	// assume acore-freq = 50 MHz
+	// divide cycles by ~ 1M to get ~ 35 tic/s
+	uint32_t cpu_cycles = csr_read(CSR_MCYCLE) & 0xffff;
+	// uint16_t vt_now = (cpu_cycles >> 20) & 0xffff;
+
+	// no need to artifically rate-limit in very slow rtl sim
+	uint16_t vt_now = (cpu_cycles >> 0) & 0xffff;
+
+
 
 	if (vt_now < vt_last)
 		vt_base += 65536;

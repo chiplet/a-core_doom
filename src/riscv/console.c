@@ -55,7 +55,6 @@ console_getchar(void)
 	// } while (c & 0x80000000);
 	// return c;
 	// TODO: implement!
-	for(;;);
 }
 
 int
@@ -64,8 +63,8 @@ console_getchar_nowait(void)
 	// int32_t c;
 	// c = uart_regs->data;
 	// return c & 0x80000000 ? -1 : (c & 0xff);
-	// TODO: implement!
-	for(;;);
+	// TODO: implement
+	return -1;
 }
 
 void
