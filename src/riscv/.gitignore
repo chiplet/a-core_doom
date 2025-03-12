@@ -1,2 +1,5 @@
 *.bin
 *.elf
+*.map
+platform_selection
+venv/

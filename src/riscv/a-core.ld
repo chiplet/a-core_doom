@@ -18,11 +18,22 @@ MEMORY {
 
 SECTIONS
 {
-  . = PROGMEM_START;   /* address of first program instruction */
+  /* address of first program instruction */
+  . = PROGMEM_START;
   .text : {
     __TEXT_BEGIN__ = .;
     *(.init)
     *(.text.init)
+    /* put select functions at the beginning to guarantee that they have
+       backing BRAM during bringup where program size exceeds available memory.
+
+       These are mainly initialization, main, trap handling and printing related
+       functions that are used to init peripherals and dump debug info during bringup.
+    */
+    *(.text.trap_handler)
+    *(.text.startup.main)
+    *(.text.printf)
+
     *(.text .text.*)
     . = ALIGN(4);
   } > ROM
@@ -30,18 +41,24 @@ SECTIONS
   PROVIDE (_etext = .);
   PROVIDE (etext = .);
 
-  /* .data and .sdata are loaded to RAM from ROM */
+  /* Reserve 32 words for storing register values during trap register dump */
+  PROVIDE (__REGFILE_SPILL_BEGIN__ = .);
+  .regfile_spill : {
+    . += 128;
+  } > RAM
+  /* .data and .sdata are loaded to RAM */
+
   .data           :
   {
     __DATA_BEGIN__ = .;
     *(.data .data.* .gnu.linkonce.d.*)
-  } > RAM AT > ROM
+  } > RAM
   .sdata          :
   {
     __SDATA_BEGIN__ = .;
     *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata .srodata.*)
     *(.sdata .sdata.* .gnu.linkonce.s.*)
-  } > RAM AT > ROM
+  } > RAM
   _edata = .; PROVIDE (edata = .);
   . = .;
 

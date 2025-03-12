@@ -36,7 +36,7 @@ static volatile struct acore_uart * const uart_regs = (void*)(A_CORE_AXI4LUART);
 void
 console_init(void)
 {
-	init_uart((uint32_t*)A_CORE_AXI4LUART, 1);
+	init_uart((uint32_t*)A_CORE_AXI4LUART, BAUDRATE);
 	// uart_regs->clk_thresh = 1; // fast output for simulation
 }
 

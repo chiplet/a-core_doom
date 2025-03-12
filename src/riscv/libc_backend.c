@@ -57,9 +57,9 @@ _sbrk(intptr_t increment)
 // Declare linker-provided symbols
 // miniwad.wad binary is directly linked into ROM .rodata section
 // we use these symbols to find the address where it will end up
-extern const unsigned char _binary_miniwad_wad_start[];
-extern const unsigned char _binary_miniwad_wad_end[];
-extern const unsigned char _binary_miniwad_wad_size[];
+// extern const unsigned char _binary_miniwad_wad_start[];
+// extern const unsigned char _binary_miniwad_wad_end[];
+// extern const unsigned char _binary_miniwad_wad_size[];
 
 /* Flash "filesystem" */
 static struct {
@@ -67,7 +67,7 @@ static struct {
 	size_t      len;	/* Length */
 	void *      addr;	/* Address in flash */
 } fs[] = {
-	{ "miniwad.wad", (unsigned int)_binary_miniwad_wad_size, (void*)_binary_miniwad_wad_start},
+	// { "miniwad.wad", (unsigned int)_binary_miniwad_wad_size, (void*)_binary_miniwad_wad_start},
 	{ NULL }
 };
 
