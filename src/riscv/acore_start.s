@@ -10,13 +10,6 @@ _start:
     la gp, __global_pointer$
     .option pop
 
-    # Copy static data from ROM to RAM
-    la      a0, __DATA_BEGIN__  # start of .data in RAM
-    la      a1, _etext          # start of .data in ROM
-    la      a2, _edata          # length of .data
-    sub     a2, a2, a0
-    call    memcpy
-
     # Clear the bss segment
     la      a0, __bss_start
     la      a2, _end
@@ -38,7 +31,7 @@ _start:
 trap_handler:
     # spill registers to memory (x4 is destroyed)
 	li x4, 0x20000000
-	sw x0, 0(x4)
+	sw x0, 0(x4)    
 	sw x1, 4(x4)
 	sw x2, 8(x4)
 	sw x3, 12(x4)

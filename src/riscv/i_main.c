@@ -28,6 +28,8 @@
 #include "a-core-utils.h"
 #include "a-core-csr.h"
 
+#define FRAMEBUF_BASE ((volatile uint8_t*)(0x50000000))
+
 // stackless print of 32-bit hexadecimal number
 static inline void print_u32_hex(const uint32_t value) {
 	for (int i = 0; i < 8; i++) {
@@ -90,6 +92,7 @@ void trap_handler_c()
 	// bootleg store mepc for later analysis (grab with jtag debugger)
 	uint32_t mepc = csr_read(CSR_MEPC);
 	// *((volatile uint32_t*)(0x20000000)) = mepc;
+	// console_printf("mepc = ");
 	// print_u32_hex(mepc);
 	console_printf("mepc = 0x%08x\n", mepc);
 	
@@ -105,7 +108,13 @@ void trap_handler_c()
 	};
 	uint32_t mcause = csr_read(CSR_MCAUSE);
 	// *((volatile uint32_t*)(0x20000004)) = mcause;
+	// stackless
+	// console_printf("mcause = ");
 	// print_u32_hex(mcause);
+	// console_printf("\n");
+	// console_printf(mcauses[mcause]);
+	// console_printf("\n");
+	// for(;;);
 	console_printf("mcause = 0x%08x : %s\n", mcause, mcauses[mcause]);
 
 	// print register dump
@@ -131,26 +140,91 @@ void trap_handler_c()
 	for(;;);
 }
 
+void clean() {
+	for (int i = 0; i < 320*200; i++) {
+		*(FRAMEBUF_BASE + i) = 0;
+		delay(2);
+	}
+}
 
 int main(void)
 {
-	*((volatile uint32_t*)(0x30000010)) = 0;
-	// HACK: hardcode uart init to place it in the beginning of text
-	*((volatile uint32_t*)(A_CORE_AXI4LUART+UART_TX_CLK_THRESH)) = BAUDRATE;
-	// send message for good luck
-	// stackless
-	// *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'm';
-	// *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'a';
-	// *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'i';
-	// *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'n';
-	// *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = '\n';
-	// stackful
-	console_printf("main\n");
+	// init peripherals
+    init_uart((volatile uint32_t*)A_CORE_AXI4LUART, BAUDRATE);
+	// *((volatile uint32_t*)(A_CORE_AXI4LUART+UART_TX_CLK_THRESH)) = BAUDRATE;
+	
+	// *((volatile uint32_t*)(0x30000010)) = 1;
+	// // HACK: hardcode uart init to place it in the beginning of text
+	// // send message for good luck
+	// // stackless
 
+	// // *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'm';
+	// // *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'a';
+	// // *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'i';
+	// // *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'n';
+	// // *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = '\n';
+	// // stackful
+	console_printf("main\n");
+	// console_printf("hello world! 0x%08x\n", 0x12345678);
+	// for(;;);
+
+	// test HRAM
+	console_printf("writing to hram\n");
+	volatile uint32_t* hram_base = (volatile uint32_t*)0x40000000;
+	for (int i = 0; i < 10; i++) {
+		hram_base[i] = i;
+	}
+
+	// uint32_t palette_base = 0x50010000;
+	// *((volatile uint32_t*)(palette_base + 0)) = 0;
+	// *((volatile uint32_t*)(palette_base + 1)) = 0xff;
+	// *((volatile uint32_t*)(palette_base + 2)) = 0xff00;
+	// *((volatile uint32_t*)(palette_base + 3)) = 0xff0000;
+
+	// There's something wrong with pipelined writes to palette memory.
+	// Add a delay after each write to avoid having to deal with it now.
+	uint32_t palette_base = 0x50010000;
+	*((volatile uint32_t*)(palette_base + 0*4)) = 0;
+	delay(2);
+	*((volatile uint32_t*)(palette_base + 1*4)) = 0xff;
+	delay(2);
+	*((volatile uint32_t*)(palette_base + 2*4)) = 0xff00;
+	delay(2);
+	*((volatile uint32_t*)(palette_base + 3*4)) = 0xff0000;
+	delay(2);
+
+	clean();
+	delay(1000000);
+
+	// test video
+	int count = 0;
+	for(;;) {
+		// uint32_t framebuf_addr = 0x50000000;
+		// // *((volatile uint8_t*)(framebuf_addr + count++)) = count % 4;
+		// delay(2);
+		// if (count >= 320*200) {
+		// 	count = 0;
+		// 	// bootleg precision register dump
+		// 	asm("li x1,1");
+		// 	asm("sw x1,0(x1)");
+		// }
+		volatile uint8_t* framebuf = (volatile uint8_t*)0x50000000;
+		for (int x = 0; x < 100; x++) {
+			for (int y = 0; y < 100; y++) {
+				framebuf[320*y + x] = x % 4;
+				delay(100000);
+			}
+		}
+	}
+
+	console_printf("infinite loop\n");
+	for(;;);
 	// paniik! D::
 	// asm("li a0,1");
 	// asm("sw a0,0(a0)");
 
-	D_DoomMain();
-	return 0;
+	// for(;;);
+
+	// // D_DoomMain();
+	// return 0;
 }
