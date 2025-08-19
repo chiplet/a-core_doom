@@ -371,15 +371,20 @@ int W_CheckNumForName (char* name)
     // case insensitive
     strupr (name8.s);
 
+    // printf(name8.s);
+
     v1 = name8.x[0];
     v2 = name8.x[1];
 
+    // printf("lumpinfo=%08x\n", lumpinfo);
+    // printf("v1=%08x, v2=%08x\n", v1, v2);
 
     // scan backwards so patch lump files take precedence
     lump_p = lumpinfo + numlumps;
 
     while (lump_p-- != lumpinfo)
     {
+        // printf("lump_p->name = %08x\n", *(int *)lump_p->name);
         if ( *(int *)lump_p->name == v1
              && *(int *)&lump_p->name[4] == v2)
         {

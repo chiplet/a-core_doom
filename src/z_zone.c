@@ -204,6 +204,20 @@ Z_Malloc
     // account for size of block header
     size += sizeof(memblock_t);
 
+    // printf("mainzone = %08x\n", mainzone);
+    // printf("  .rover = %08x\n", mainzone->rover);
+
+    // poor man's watchpoint
+    // if (mainzone->rover == 0xfda84000) {
+        // printf("  size = %08x\n", size);
+        // printf("  start = %08x\n", start);
+        // printf("  rover = %08x\n", rover);
+        // printf("  newblock = %08x\n", newblock);
+        // printf("  base = %08x\n", base);
+    // }
+
+    // if (mainzone->rover == 0xfda84000) for(;;);
+
     // if there is a free block behind the rover,
     //  back up over them
     base = mainzone->rover;
@@ -249,10 +263,17 @@ Z_Malloc
     // found a block big enough
     extra = base->size - size;
 
+    // if (extra == 0x005ec420) {
+    //     printf("base->size = %08x\n", base->size);
+    //     printf("size = %08x\n", size);
+    //     printf("extra = %08x\n", extra);
+    // }
+
     if (extra >  MINFRAGMENT)
     {
         // there will be a free fragment after the allocated block
         newblock = (memblock_t *) ((byte *)base + size );
+        // if (extra == 0x005ec420) printf("newblock = %08x\n", newblock);
         newblock->size = extra;
 
         // NULL indicates free block.
@@ -262,8 +283,24 @@ Z_Malloc
         newblock->next = base->next;
         newblock->next->prev = newblock;
 
+        // if (extra == 0x005ec420) printf("newblock = %08x\n", newblock);
+        // if (extra == 0x005ec420) printf("base = %08x\n", base);
+
         base->next = newblock;
+        // if (extra == 0x005ec420) {
+        //     // paniik! D::
+        //     asm("li a0,1");
+        //     asm("sw a0,0(a0)");
+        // }
+        // if (extra == 0x005ec420) printf("1 base->next = %08x\n", base->next);
+        // if (extra == 0x005ec420) printf("1 base->next = %08x\n", base->next);
+
+
+        // base->next seems to be corrupted by this line
         base->size = size;
+        // if (extra == 0x005ec420) printf("2 base->next = %08x\n", base->next);
+        // if (extra == 0x005ec420) printf("2 base->next = %08x\n", base->next);
+
     }
 
     if (user)
@@ -280,7 +317,13 @@ Z_Malloc
         // mark as in use, but unowned
         base->user = (void *)2;
     }
+    // if (extra == 0x005ec420) printf("3 base->next = %08x\n", base->next);
+
     base->tag = tag;
+    // if (extra == 0x005ec420) printf("4 base->next = %08x\n", base->next);
+
+
+    // printf("5 base->next = %08x\n", base->next);
 
     // next allocation will start looking here
     mainzone->rover = base->next;

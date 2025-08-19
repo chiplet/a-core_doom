@@ -67,7 +67,7 @@ static struct {
 	size_t      len;	/* Length */
 	void *      addr;	/* Address in flash */
 } fs[] = {
-	// { "miniwad.wad", (unsigned int)_binary_miniwad_wad_size, (void*)_binary_miniwad_wad_start},
+	{ "miniwad.wad", (unsigned int)12408292, (void*)0x41000000},
 	{ NULL }
 };
 

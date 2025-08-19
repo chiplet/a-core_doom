@@ -77,11 +77,12 @@ I_GetTime(void)
 	// read time from cycles csr
 	// assume acore-freq = 50 MHz
 	// divide cycles by ~ 1M to get ~ 35 tic/s
-	uint32_t cpu_cycles = csr_read(CSR_MCYCLE) & 0xffff;
-	// uint16_t vt_now = (cpu_cycles >> 20) & 0xffff;
+	uint32_t cpu_cycles = csr_read(CSR_MCYCLE);
+	uint16_t vt_now = (cpu_cycles >> 19) & 0xffff;
+	// console_printf("vt_now = %d\n", vt_now);
 
 	// no need to artifically rate-limit in very slow rtl sim
-	uint16_t vt_now = (cpu_cycles >> 0) & 0xffff;
+	// uint16_t vt_now = (cpu_cycles >> 20) & 0xffff;
 
 
 
@@ -134,48 +135,74 @@ I_GetRemoteEvent(void)
 	int mdx = 0;
 	int mdy = 0;
 
+	static int last_ch;
+
 	while (1) {
 		int ch = console_getchar_nowait();
-		if (ch == -1)
-			break;
 
-		boolean msb = ch & 0x80;
-		ch &= 0x7f;
-
-		if (ch < 28) {
-			/* Keyboard special */
-			event.type = msb ? ev_keydown : ev_keyup;
-			event.data1 = map[ch];
+		if (ch == -1) {
+			// no input char => key up of last pressed key
+			event.type = ev_keyup;
+			event.data1 = last_ch;
 			D_PostEvent(&event);
-		} else if (ch < 31) {
-			/* Mouse buttons */
-			if (msb)
-				s_btn |= (1 << ((ch & 0x7f) - 28));
-			else
-				s_btn &= ~(1 << ((ch & 0x7f) - 28));
-			mupd = true;
-		} else if (ch == 0x1f) {
-			/* Mouse movement */
-			signed char x = console_getchar();
-			signed char y = console_getchar();
-			mdx += x;
-			mdy += y;
-			mupd = true;
+			break;
 		} else {
-			/* Keyboard normal */
-			event.type = msb ? ev_keydown : ev_keyup;
-			event.data1 = ch;
+			// input char => post it as key down event
+			console_printf("read char: %02x (%c)\n", ch, ch);
+			event.type = ev_keydown;
+			if (ch == 'w')event.data1 = KEY_UPARROW;
+			if (ch == 'a') event.data1 = KEY_LEFTARROW;
+			if (ch == 's') event.data1 = KEY_DOWNARROW;
+			if (ch == 'd') event.data1 = KEY_RIGHTARROW;
+			if (ch == 0x0d) event.data1 = KEY_ENTER;
+			if (ch == 0x1b) event.data1 = KEY_ESCAPE;
 			D_PostEvent(&event);
 		}
-	}
 
-	if (mupd) {
-		event.type = ev_mouse;
-		event.data1 = s_btn;
-		event.data2 =   mdx << 2;
-		event.data3 = - mdy << 2;	/* Doom is sort of inverted ... */
-		D_PostEvent(&event);
+		last_ch = ch;
+
+		// D_PostEvent(&event);
+
+		// boolean msb = ch & 0x80;
+		// ch &= 0x7f;
+
+		// if (ch < 28) {
+		// 	/* Keyboard special */
+		// 	console_puts("keyboard special\n");
+		// 	event.type = msb ? ev_keydown : ev_keyup;
+		// 	event.data1 = map[ch];
+		// 	D_PostEvent(&event);
+		// } else if (ch < 31) {
+		// 	console_puts("mouse buttons\n");
+		// 	/* Mouse buttons */
+		// 	if (msb)
+		// 		s_btn |= (1 << ((ch & 0x7f) - 28));
+		// 	else
+		// 		s_btn &= ~(1 << ((ch & 0x7f) - 28));
+		// 	mupd = true;
+		// } else if (ch == 0x1f) {
+		// 	console_puts("mouse movement\n");
+		// 	/* Mouse movement */
+		// 	signed char x = console_getchar();
+		// 	signed char y = console_getchar();
+		// 	mdx += x;
+		// 	mdy += y;
+		// 	mupd = true;
+		// } else {
+		// 	console_puts("keyboard normal\n");
+		// 	/* Keyboard normal */
+		// 	event.type = msb ? ev_keydown : ev_keyup;
+		// 	event.data1 = ch;
+		// 	D_PostEvent(&event);
+		// }
 	}
+	// if (mupd) {
+	// 	event.type = ev_mouse;
+	// 	event.data1 = s_btn;
+	// 	event.data2 =   mdx << 2;
+	// 	event.data3 = - mdy << 2;	/* Doom is sort of inverted ... */
+	// 	D_PostEvent(&event);
+	// }
 }
 
 void

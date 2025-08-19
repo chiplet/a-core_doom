@@ -49,17 +49,17 @@ void
 I_SetPalette(byte* palette)
 {
 	printf("byte* palette = 0x%08x\n", palette);
-	static volatile uint32_t * const video_pal = (void*)(VID_PAL_BASE);
+	volatile uint32_t* const video_pal = (volatile uint32_t*)(VID_PAL_BASE);
 	byte r, g, b;
 
 	for (int i=0 ; i<256 ; i++) {
 		r = gammatable[usegamma][*palette++];
 		g = gammatable[usegamma][*palette++];
 		b = gammatable[usegamma][*palette++];
-		printf("0x%08x\n0x%08x\n0x%08x\n",r,g,b);
-		video_pal[i] = ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
+		uint32_t color = ((uint32_t)b << 16) | ((uint32_t)g << 8) | (uint32_t)r;
+		printf("write 0x%08x 0x%08x\n", &video_pal[i], color);
+		video_pal[i] = color;
 	}
-	for(;;);
 }
 
 

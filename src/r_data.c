@@ -517,10 +517,12 @@ void R_InitTextures (void)
 
         mtexture = (maptexture_t *) ( (byte *)maptex + offset);
 
+        // printf("patchcount = %08x\n", mtexture->patchcount);
         texture = textures[i] =
             Z_Malloc (sizeof(texture_t)
                       + sizeof(texpatch_t)*(SHORT(mtexture->patchcount)-1),
                       PU_STATIC, 0);
+        // printf("zmalloced: i = %d, texture = %08x\n", i, texture);
 
         texture->width = SHORT(mtexture->width);
         texture->height = SHORT(mtexture->height);

@@ -43,47 +43,19 @@ static inline void print_u32_hex(const uint32_t value) {
 	*((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = '\n';
 }
 
-// static inline void spill_regs() {
-// 	asm("li x4, 0x20000000");
-// 	asm("sw x0, 0(x4)");
-// 	asm("sw x1, 4(x4)");
-// 	asm("sw x2, 8(x4)");
-// 	asm("sw x3, 12(x4)");
-// 	asm("sw x0, 16(x4)"); // invalid
-// 	asm("sw x5, 20(x4)");
-// 	asm("sw x6, 24(x4)");
-// 	asm("sw x7, 28(x4)");
-// 	asm("sw x8, 32(x4)");
-// 	asm("sw x9, 36(x4)");
-// 	asm("sw x10, 40(x4)");
-// 	asm("sw x11, 44(x4)");
-// 	asm("sw x12, 48(x4)");
-// 	asm("sw x13, 52(x4)");
-// 	asm("sw x14, 56(x4)");
-// 	asm("sw x15, 60(x4)");
-// 	asm("sw x16, 64(x4)");
-// 	asm("sw x17, 68(x4)");
-// 	asm("sw x18, 72(x4)");
-// 	asm("sw x19, 76(x4)");
-// 	asm("sw x20, 80(x4)");
-// 	asm("sw x21, 84(x4)");
-// 	asm("sw x22, 88(x4)");
-// 	asm("sw x23, 92(x4)");
-// 	asm("sw x24, 96(x4)");
-// 	asm("sw x25, 100(x4)");
-// 	asm("sw x26, 104(x4)");
-// 	asm("sw x27, 108(x4)");
-// 	asm("sw x28, 112(x4)");
-// 	asm("sw x29, 116(x4)");
-// 	asm("sw x30, 120(x4)");
-// 	asm("sw x31, 124(x4)");
-// }
 
 // This function is invoked by trap_handler assembly routine that spills
 // register file contents to memory and hands off control to this function
 // for debug printing tasks.
 void trap_handler_c()
 {
+	*((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 't';
+	*((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'r';
+	*((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'a';
+	*((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'p';
+	*((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = '\n';
+	// for(;;);
+
 	// Indicate we have entered the trap handler by enabling LED0
 	*((volatile uint32_t*)(0x30000010)) = 0b01;
 	console_printf("\nEXCEPTION\n");
@@ -149,82 +121,105 @@ void clean() {
 
 int main(void)
 {
+	*((volatile uint32_t*)(0x30000010)) = 2;
+	// for (;;) {
+	// 	*((volatile uint32_t*)(0x30000010)) = 3;
+	// 	delay(10000000);
+	// 	*((volatile uint32_t*)(0x30000010)) = 0;
+	// 	delay(10000000);
+	// }
 	// init peripherals
     init_uart((volatile uint32_t*)A_CORE_AXI4LUART, BAUDRATE);
 	// *((volatile uint32_t*)(A_CORE_AXI4LUART+UART_TX_CLK_THRESH)) = BAUDRATE;
+    *((volatile uint32_t*)(A_CORE_AXI4LUART + 16)) = BAUDRATE; // baud rate counter thereshold
 	
 	// *((volatile uint32_t*)(0x30000010)) = 1;
 	// // HACK: hardcode uart init to place it in the beginning of text
 	// // send message for good luck
 	// // stackless
 
-	// // *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'm';
-	// // *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'a';
-	// // *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'i';
-	// // *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'n';
-	// // *((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = '\n';
+	*((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'm';
+	*((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'a';
+	*((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'i';
+	*((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = 'n';
+	*((volatile uint8_t*)(A_CORE_AXI4LUART+UART_TX_BYTE)) = '\n';
 	// // stackful
-	console_printf("main\n");
-	// console_printf("hello world! 0x%08x\n", 0x12345678);
+	console_printf("printf(main)\n");
+	// for(;;);
+
+	console_printf("hello world! 0x%08x\n", 0x12345678);
+	// for(;;);
+
+	// test read from SPI flash ROM (wad is stored here)
+	for (int i = 0; i < 10; i++) {
+		uint8_t wad = *((volatile uint8_t*)(0x41000000 + i));
+		printf("wad[%d] = 0x%02x\n", i, wad);
+		// uint32_t wad = *((volatile uint32_t*)(0x41000000 + i*4));
+		// printf("wad[%d] = 0x%08x\n", 4*i, wad);
+	}
 	// for(;;);
 
 	// test HRAM
-	console_printf("writing to hram\n");
-	volatile uint32_t* hram_base = (volatile uint32_t*)0x40000000;
-	for (int i = 0; i < 10; i++) {
-		hram_base[i] = i;
-	}
+	// doesn't work when executing from HRAM tough :D
+	// console_printf("writing to hram\n");
+	// volatile uint32_t* hram_base = (volatile uint32_t*)0x40000000;
+	// for (int i = 0; i < 128000; i++) {
+	// 	hram_base[i] = i;
+	// }
 
-	// uint32_t palette_base = 0x50010000;
-	// *((volatile uint32_t*)(palette_base + 0)) = 0;
-	// *((volatile uint32_t*)(palette_base + 1)) = 0xff;
-	// *((volatile uint32_t*)(palette_base + 2)) = 0xff00;
-	// *((volatile uint32_t*)(palette_base + 3)) = 0xff0000;
+	// console_printf("reading from hram\n");
+	// for (int i = 0; i < 128000; i++) {
+	// 	uint32_t read_word = hram_base[i];
+	// 	if (read_word != i) {
+	// 		console_printf("error: i = %d, read = 0x%08x\n", i, read_word);
+	// 	}
+	// }
+	// console_printf("done reading!\n");
 
 	// There's something wrong with pipelined writes to palette memory.
 	// Add a delay after each write to avoid having to deal with it now.
-	uint32_t palette_base = 0x50010000;
-	*((volatile uint32_t*)(palette_base + 0*4)) = 0;
-	delay(2);
-	*((volatile uint32_t*)(palette_base + 1*4)) = 0xff;
-	delay(2);
-	*((volatile uint32_t*)(palette_base + 2*4)) = 0xff00;
-	delay(2);
-	*((volatile uint32_t*)(palette_base + 3*4)) = 0xff0000;
-	delay(2);
+	// uint32_t palette_base = 0x50010000;
+	// *((volatile uint32_t*)(palette_base + 0*4)) = 0;
+	// *((volatile uint32_t*)(palette_base + 1*4)) = 0xff;
+	// *((volatile uint32_t*)(palette_base + 2*4)) = 0xff00;
+	// *((volatile uint32_t*)(palette_base + 3*4)) = 0xff0000;
+	// delay(2);
+	// delay(2);
+	// delay(2);
+	// delay(2);
 
-	clean();
-	delay(1000000);
+	// clean();
+	// delay(10000000);
 
-	// test video
-	int count = 0;
-	for(;;) {
-		// uint32_t framebuf_addr = 0x50000000;
-		// // *((volatile uint8_t*)(framebuf_addr + count++)) = count % 4;
-		// delay(2);
-		// if (count >= 320*200) {
-		// 	count = 0;
-		// 	// bootleg precision register dump
-		// 	asm("li x1,1");
-		// 	asm("sw x1,0(x1)");
-		// }
-		volatile uint8_t* framebuf = (volatile uint8_t*)0x50000000;
-		for (int x = 0; x < 100; x++) {
-			for (int y = 0; y < 100; y++) {
-				framebuf[320*y + x] = x % 4;
-				delay(100000);
-			}
-		}
-	}
 
-	console_printf("infinite loop\n");
-	for(;;);
+
+	// // test video
+	// int count = 0;
+	// for(;;) {
+	// 	uint32_t framebuf_addr = 0x50000000;
+	// 	// *((volatile uint8_t*)(framebuf_addr + count++)) = count % 4;
+	// 	delay(2);
+	// 	if (count >= 320*200) {
+	// 		count = 0;
+	// 		// bootleg precision register dump
+	// 		asm("li x1,1");
+	// 		asm("sw x1,0(x1)");
+	// 	}
+	// volatile uint8_t* framebuf = (volatile uint8_t*)0x50000000;
+	// for (int y = 0; y < 200; y++) {
+	// 	for (int x = 0; x < 320; x++) {
+	// 		framebuf[320*y + x] = (x+y) % 4;
+	// 		// delay(100000);
+	// 	}
+	// }
+	// }
+
 	// paniik! D::
 	// asm("li a0,1");
 	// asm("sw a0,0(a0)");
 
 	// for(;;);
 
-	// // D_DoomMain();
+	D_DoomMain();
 	// return 0;
 }

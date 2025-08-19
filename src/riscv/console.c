@@ -46,6 +46,9 @@ console_putchar(char c)
 	transmit_byte((uint8_t*)A_CORE_AXI4LUART, (uint8_t)c);
 }
 
+// fwd decl
+void console_puts(const char *p);
+
 char
 console_getchar(void)
 {
@@ -60,11 +63,18 @@ console_getchar(void)
 int
 console_getchar_nowait(void)
 {
-	// int32_t c;
-	// c = uart_regs->data;
-	// return c & 0x80000000 ? -1 : (c & 0xff);
-	// TODO: implement
-	return -1;
+	int32_t c;
+	// TODO: use generated headers instead of magic addresses
+	uint32_t rx_status = *((volatile uint32_t*)0x30001018);
+
+	// if fifo not empty
+	if (!(rx_status & 0b100)) {
+		// read byte from fifo
+		c = *((volatile uint32_t*)0x30001014);
+		return c;
+	} else {
+		return -1;
+	}
 }
 
 void

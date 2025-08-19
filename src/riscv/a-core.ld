@@ -12,8 +12,8 @@ OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
 MEMORY {
-    ROM (rx) : ORIGIN = PROGMEM_START, LENGTH = 32K
-    RAM (rwx)  : ORIGIN = DATAMEM_START, LENGTH = 32K
+    ROM (rx) : ORIGIN = 0x40000000, LENGTH = 1M
+    RAM (rwx)  : ORIGIN = 0x40100000, LENGTH = 7M
 }
 
 SECTIONS
@@ -104,5 +104,9 @@ SECTIONS
   /* 0x800 is a magic number for 12-bit signed offsets */
   __global_pointer$ = MIN(__SDATA_BEGIN__ + 0x800, MAX(__DATA_BEGIN__ + 0x800, __BSS_END__ - 0x800));
 
+  /* Stack in HRAM */
   PROVIDE(__stack_top = ORIGIN(RAM) + LENGTH(RAM));
+
+  /* Stack in block RAM */
+  /* PROVIDE(__stack_top = 0x20000000 + 8192); */
 }
