@@ -25,7 +25,8 @@ _start:
     la a0, trap_handler
     csrw mtvec, a0
 
-    jal zero, main
+    la t0, main
+    jalr x0, t0, 0                # no link, like 'jal zero, main'
 
 
 trap_handler:
@@ -63,4 +64,5 @@ trap_handler:
 	sw x29, 116(x4)
 	sw x30, 120(x4)
 	sw x31, 124(x4)
-    jal zero, trap_handler_c
+	la t0, trap_handler_c
+    jalr x0, t0, 0                # no link, like 'jal zero, main'

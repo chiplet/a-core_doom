@@ -12,34 +12,42 @@ OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
 MEMORY {
+    PROGMEM (rx) : ORIGIN = 0x1000, LENGTH = 512
     ROM (rx) : ORIGIN = 0x40000000, LENGTH = 1M
     RAM (rwx)  : ORIGIN = 0x40100000, LENGTH = 7M
 }
 
 SECTIONS
 {
-  /* address of first program instruction */
-  . = PROGMEM_START;
-  .text : {
-    __TEXT_BEGIN__ = .;
-    *(.init)
-    *(.text.init)
-    /* put select functions at the beginning to guarantee that they have
-       backing BRAM during bringup where program size exceeds available memory.
+/* --- Only the init code in PROGMEM --- */
+  . = ORIGIN(PROGMEM);
+  .text.init : ALIGN(4)
+  {
+    /* Keep to survive --gc-sections */
+    KEEP(*(.init))
+    KEEP(*(.text.init))
+  } > PROGMEM
 
-       These are mainly initialization, main, trap handling and printing related
-       functions that are used to init peripherals and dump debug info during bringup.
-    */
+  /* --- Everything else in ROM --- */
+  . = ORIGIN(ROM);
+  .text : ALIGN(4)
+  {
+    __TEXT_BEGIN__ = .;
+
+    /* Early / critical routines still in ROM (not PROGMEM) */
     *(.text.trap_handler)
     *(.text.startup.main)
     *(.text.printf)
 
+    /* The rest of the code */
     *(.text .text.*)
+
     . = ALIGN(4);
   } > ROM
-  PROVIDE (__etext = .);
-  PROVIDE (_etext = .);
-  PROVIDE (etext = .);
+
+  PROVIDE(__etext = .);
+  PROVIDE(_etext = .);
+  PROVIDE(etext = .);
 
   /* Reserve 32 words for storing register values during trap register dump */
   PROVIDE (__REGFILE_SPILL_BEGIN__ = .);
